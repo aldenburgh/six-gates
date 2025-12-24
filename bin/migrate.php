@@ -20,6 +20,12 @@ try {
     $pdo = new PDO("mysql:host=$host;port=$port", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    // If --fresh is passed, drop the database first
+    if (in_array('--fresh', $argv)) {
+        echo "Dropping database `$db`...\n";
+        $pdo->exec("DROP DATABASE IF EXISTS `$db`");
+    }
+
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db`");
     $pdo->exec("USE `$db`");
 
