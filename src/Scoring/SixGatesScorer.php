@@ -16,6 +16,11 @@ class SixGatesScorer
         $this->gates[] = $gate;
     }
 
+    public function resetGates(): void
+    {
+        $this->gates = [];
+    }
+
     public function score(string $ticker, DataProviderInterface $provider): AnalysisResult
     {
         $results = [];

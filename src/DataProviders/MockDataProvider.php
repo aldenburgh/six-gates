@@ -56,6 +56,7 @@ class MockDataProvider implements DataProviderInterface
             'quote' => [
                 'price' => 175.50,
                 'pe' => 28.5,
+                'marketCap' => 2800000000000,
             ]
         ];
     }
@@ -107,5 +108,18 @@ class MockDataProvider implements DataProviderInterface
     public function getSectorPerformance(): array
     {
         return [];
+    }
+
+    public function getCompanyProfile(string $ticker): ?array
+    {
+        return [
+            'symbol' => $ticker,
+            'companyName' => "Mock $ticker Inc.",
+            'currency' => 'USD',
+            'exchange' => 'NASDAQ',
+            'industry' => 'Consumer Electronics',
+            'sector' => 'Technology',
+            'description' => 'Mock description for evaluation.'
+        ];
     }
 }

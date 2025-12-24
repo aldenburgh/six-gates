@@ -3,7 +3,7 @@
 return [
     'fmp' => [
         'api_key' => $_ENV['FMP_API_KEY'] ?? '',
-        'base_url' => $_ENV['FMP_BASE_URL'] ?? 'https://financialmodelingprep.com/stable',
+        'base_url' => 'https://financialmodelingprep.com/api/v3',
     ],
 
     'anthropic' => [

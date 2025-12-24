@@ -141,4 +141,26 @@ class CacheableProviderDecorator implements DataProviderInterface
             fn() => $this->tweed->getSectorPerformance()
         );
     }
+
+    public function getCompanyProfile(string $ticker): ?array
+    {
+        // Need to handle null return from callback in cache logic? 
+        // My getCached logic assumes array return.
+        // If profile is NOT found, FMP returns empty or null?
+        // My FMP implementation returns `null` or `array`.
+        // If I return `?array`, my `getCached` signature `array` will fail.
+
+        $item = $this->cache->getItem("fmp.profile.{$ticker}");
+
+        if (!$item->isHit()) {
+            $data = $this->tweed->getCompanyProfile($ticker);
+            // Cache even if null? Maybe cache "not found" state.
+            $item->set($data);
+            $item->expiresAfter(86400);
+            $this->cache->save($item);
+            return $data;
+        }
+
+        return $item->get();
+    }
 }

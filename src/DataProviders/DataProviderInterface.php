@@ -15,4 +15,5 @@ interface DataProviderInterface
     public function getStockNews(string $ticker, int $limit = 50): array;
     public function getQuote(string $ticker): array;
     public function getSectorPerformance(): array;
+    public function getCompanyProfile(string $ticker): ?array;
 }

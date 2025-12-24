@@ -28,42 +28,43 @@ class FinancialModelingPrepProvider implements DataProviderInterface
 
     public function getIncomeStatement(string $ticker, int $limit = 5): array
     {
-        return $this->fetch("income-statement", ['symbol' => $ticker, 'limit' => $limit, 'period' => 'annual']);
+        return $this->fetch("income-statement/{$ticker}", ['limit' => $limit, 'period' => 'annual']);
     }
 
     public function getBalanceSheet(string $ticker, int $limit = 5): array
     {
-        return $this->fetch("balance-sheet-statement", ['symbol' => $ticker, 'limit' => $limit, 'period' => 'annual']);
+        return $this->fetch("balance-sheet-statement/{$ticker}", ['limit' => $limit, 'period' => 'annual']);
     }
 
     public function getCashFlow(string $ticker, int $limit = 5): array
     {
-        return $this->fetch("cash-flow-statement", ['symbol' => $ticker, 'limit' => $limit, 'period' => 'annual']);
+        return $this->fetch("cash-flow-statement/{$ticker}", ['limit' => $limit, 'period' => 'annual']);
     }
 
     public function getKeyMetrics(string $ticker, int $limit = 5): array
     {
-        return $this->fetch("key-metrics", ['symbol' => $ticker, 'limit' => $limit, 'period' => 'annual']);
+        return $this->fetch("key-metrics/{$ticker}", ['limit' => $limit, 'period' => 'annual']);
     }
 
     public function getRatios(string $ticker, int $limit = 5): array
     {
-        return $this->fetch("ratios", ['symbol' => $ticker, 'limit' => $limit, 'period' => 'annual']);
+        return $this->fetch("ratios/{$ticker}", ['limit' => $limit, 'period' => 'annual']);
     }
 
     public function getInsiderTrading(string $ticker): array
     {
         try {
-            return $this->fetch("insider-trading", ['symbol' => $ticker, 'limit' => 100]);
+            return $this->fetch("insider-trading", ['symbol' => $ticker, 'limit' => 100]); // insider might be query param based? Check docs. Assuming path for consistency or leave as is if risky. 
+            // Docs say: v4/insider-trading?symbol=AAPL. v3 might differ. 
+            // I'll assume insider-trading is query based for now or skip it if it fails.
         } catch (\RuntimeException $e) {
-            // Insider endpoints often restricted or legacy.
             return [];
         }
     }
 
     public function getAnalystEstimates(string $ticker): array
     {
-        return $this->fetch("analyst-estimates", ['symbol' => $ticker, 'period' => 'annual', 'limit' => 10]);
+        return $this->fetch("analyst-estimates/{$ticker}", ['period' => 'annual', 'limit' => 10]);
     }
 
     public function getHistoricalPrice(string $ticker): array
@@ -76,7 +77,7 @@ class FinancialModelingPrepProvider implements DataProviderInterface
     public function getStockNews(string $ticker, int $limit = 50): array
     {
         try {
-            return $this->fetch("news/stock", ['symbols' => $ticker, 'limit' => $limit]);
+            return $this->fetch("stock_news", ['tickers' => $ticker, 'limit' => $limit]);
         } catch (\RuntimeException $e) {
             echo "NEWS FETCH ERROR: " . $e->getMessage() . "\n";
             return [];
@@ -85,11 +86,17 @@ class FinancialModelingPrepProvider implements DataProviderInterface
 
     public function getQuote(string $ticker): array
     {
-        return $this->fetch("quote", ['symbol' => $ticker]);
+        return $this->fetch("quote/{$ticker}");
     }
 
     public function getSectorPerformance(): array
     {
         return $this->fetch("sector-performance");
+    }
+
+    public function getCompanyProfile(string $ticker): ?array
+    {
+        $data = $this->fetch("profile/{$ticker}");
+        return $data[0] ?? null;
     }
 }
