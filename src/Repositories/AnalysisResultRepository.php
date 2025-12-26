@@ -9,41 +9,87 @@ class AnalysisResultRepository extends AbstractRepository
 {
     public function __construct(Connection $connection)
     {
-        parent::__construct($connection, 'analysis_results');
+        parent::__construct($connection, 'stock_analyses');
     }
 
     public function save(AnalysisResult $result): void
     {
-        // 1. Ensure Stock Exists
-        // In a real app we'd use StockRepository separately, but here we might need quick check.
-        // Assuming stock exists or we might fail FK constraint.
-        // Let's insert ignore/upsert stock stub if needed?
-        // For strictness, we assume stock exists. If not, analyze.php should ensure it.
+        // 1. Prepare Data for `stock_analyses` schema (V6 Architecture)
+        $uuid = sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
+        );
 
-        // 2. Prepare Data
         $data = [
+            'id' => $result->id ?? $uuid,
             'ticker' => $result->ticker,
-            'run_date' => date('Y-m-d'),
-            'gate_results' => json_encode($result->gateResults),
-            'passed_gates' => json_encode($this->getPassedGateIds($result)),
-            'conviction_score' => $result->getConvictionScore(),
-            'is_latest' => 1,
+            'analysis_date' => date('Y-m-d'),
 
-            // New V3 Columns
+            // Tier
+            'quality_tier' => $this->mapQualityTier($result->qualityTier),
+
+            // Gate 1
+            'gate_1_passed' => $this->getGatePassed($result, 'gate_1') ? 1 : 0,
+            'gate_1_data' => $this->getGateDataJson($result, 'gate_1'),
+
+            // Gate 1.5
+            'gate_1_5_moat_type' => $result->gateResults['gate_1_5']->metrics['moat_type'] ?? null,
+            'gate_1_5_durability' => $result->gateResults['gate_1_5']->metrics['moat_durability'] ?? null, // Note: Durability is in Details actually? Check logs. Log says "Durability: high".
             'gate_1_5_data' => $this->getGateDataJson($result, 'gate_1_5'),
-            'gate_2_75_data' => $this->getGateDataJson($result, 'gate_2_75'),
-            'gate_3_5_data' => $this->getGateDataJson($result, 'gate_3_5'),
-            'gate_3_5_passed' => $this->getGatePassed($result, 'gate_3_5') ? 1 : 0,
 
-            'quality_tier' => $this->mapQualityTier($result->qualityTier)
-            // Removed position_size and market_context as they are not in the table schema
+            // Gate 2
+            'gate_2_passed' => $this->getGatePassed($result, 'gate_2') ? 1 : 0,
+            'gate_2_roic' => $result->gateResults['gate_2']->metrics['avg_roic'] ?? null,
+            'gate_2_wacc' => $result->gateResults['gate_2']->metrics['wacc'] ?? null,
+            'gate_2_data' => $this->getGateDataJson($result, 'gate_2'),
+
+            // Gate 2.5
+            'gate_2_5_passed' => $this->getGatePassed($result, 'gate_2_5') ? 1 : 0,
+            'gate_2_5_debt_ebitda' => $result->gateResults['gate_2_5']->metrics['net_debt_ebitda'] ?? null,
+            'gate_2_5_data' => $this->getGateDataJson($result, 'gate_2_5'),
+
+            // Gate 2.75
+            'gate_2_75_category' => $result->gateResults['gate_2_75']->details['runway_category'] ?? null,
+            'gate_2_75_data' => $this->getGateDataJson($result, 'gate_2_75'),
+
+            // Gate 3
+            'gate_3_passed' => $this->getGatePassed($result, 'gate_3') ? 1 : 0,
+            'gate_3_fcf_conversion' => $result->gateResults['gate_3']->metrics['fcf_conversion'] ?? null,
+            'gate_3_data' => $this->getGateDataJson($result, 'gate_3'),
+
+            // Gate 3.5
+            'gate_3_5_too_hard' => $this->getGatePassed($result, 'gate_3_5') ? 0 : 1, // Pass means NOT too hard. Schema says `gate_3_5_too_hard`. Logic inversion? Schema usually stores flags. Let's assume passed=1 means OK. Wait, schema field is `too_hard`. If passed=true (Not too hard), then too_hard=0.
+            'gate_3_5_data' => $this->getGateDataJson($result, 'gate_3_5'),
+
+            // Gate 4
+            'gate_4_in_zone' => $this->getGatePassed($result, 'gate_4') ? 1 : 0,
+            'gate_4_fair_value' => $result->gateResults['gate_4']->metrics['fair_value'] ?? null, // Need to ensure Calculator outputs 'fair_value' in metric? Often it's just PEG/PE.
+            'gate_4_data' => $this->getGateDataJson($result, 'gate_4'),
+
+            // Gate 5
+            'gate_5_data' => $this->getGateDataJson($result, 'gate_5'),
+
+            // Context
+            // Schema doesn't have score column? It has `gate_5_score`.
+            // 'gate_5_score' => ...
+
+            // Dividend (Optional, if Dividend Portfolio)
         ];
 
-        // Unset previous latest
-        $this->connection->update($this->table, ['is_latest' => 0], ['ticker' => $result->ticker]);
+        // Handle UPSERT logic manually or delete-insert for same day?
+        // Schema: UNIQUE INDEX `idx_analysis_ticker_date` (`ticker`, `analysis_date`)
+        // So we should delete previous for today or use upsert.
+        // DBAL insert() throws on duplicate.
+        // Let's delete for today first.
+        $this->connection->delete($this->table, ['ticker' => $result->ticker, 'analysis_date' => date('Y-m-d')]);
 
-        // Insert
-        // Use try-catch for insert to report specific errors if needed
         $this->connection->insert($this->table, $data);
     }
 

@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS `stocks` (
+    `ticker` VARCHAR(10) NOT NULL,
+    `company_name` VARCHAR(255) NOT NULL,
+    `sector` VARCHAR(100) NULL,
+    `industry` VARCHAR(100) NULL,
+    `is_active` TINYINT(1) DEFAULT 1,
+    `last_updated` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`ticker`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

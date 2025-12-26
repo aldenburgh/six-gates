@@ -1,0 +1,80 @@
+Six Gates Investment Screening System - Phase 1
+-----------------------------------------------
+Analyzing Ticker: GOOG
+
+[Gate 2] Economic Engine:
+PASS ✅
+ - avg_roic: 0.2091
+ - wacc: 0.0800
+ - spread: 0.1291
+ - margin_slope: 0.0159
+
+[Gate 2.5] Capital Structure:
+PASS ✅
+ - net_debt_ebitda: 0.0147
+ - interest_coverage: 419.3657
+ - debt_due_12m_pct: 0.0000
+ - stress_ebitda: 94,775,800,000.0000
+ - interest_expense: 268,000,000.0000
+
+[Gate 3] Cash Integrity:
+PASS ✅
+ - fcf_conversion: 0.8648
+ - accruals_ratio: -0.0559
+ - receivables_divergence: -0.0474
+
+[Gate 4] Valuation:
+PASS ✅
+ - peg: 0.5940
+ - pegy: 0.5893
+ - p_fcf: 32.0486
+ - valuation_percentile: 0.3913
+
+[Gate 1] Capital Allocation:
+PASS ✅
+ - share_reduction_5y: 0.0953
+ - net_insider_shares_12m: 0.0000
+ - dividend_cuts: 0.0000
+
+[Gate 5] Narrative Arbitrage:
+NEWS FETCH ERROR: FMP API Error: Client error: `GET https://financialmodelingprep.com/stable/stock_news?tickers=GOOG&limit=10&apikey=6LbGFAC3kxVvMvXw8JxTYTDJ39PQOCmK` resulted in a `404 Not Found` response:
+[]
+
+STATUS: NEUTRAL
+ - analyst_count: 0.0000
+ - avg_eps_estimate: 0.0000
+ - revision_trend: 0.0000
+ - sentiment_score: 0.0000
+ - news_count: 0.0000
+
+[Gate 1.5] Moat Assessment:
+Durability: high
+Type: network_effects
+
+[Gate 2.75] Reinvestment Runway:
+Growth Category: medium_runway
+ - reinvestment_rate: 0.3069
+ - incremental_roic: 0.8660
+ - growth_category: 0.0000
+ - nopat_growth_3y: 0.4238
+
+[Gate 3.5] Complexity Filter:
+PASS ✅ (Not Too Hard)
+ - earnings_cov: 0.3111
+ - predictability: 0.0000
+
+[Market Context] Cycle Analysis:
+Phase: BULL
+Risk Score: 50/100
+Discount Adj: 0%
+
+-----------------------------------------------
+Full Analysis Run:
+Ticker: GOOG
+Quality Check: PASSED ✅
+
+[Classification] Tier & Size:
+Quality Tier: High Quality
+Recommended Position: 10%
+
+[33mWARNING: Could not save to database: An exception occurred while executing a query: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'six_gates.stocks' doesn't exist[0m

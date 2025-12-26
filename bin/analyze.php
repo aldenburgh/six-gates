@@ -63,7 +63,13 @@ try {
     $longopts = ["ticker:", "force"];
     $options = getopt($shortopts, $longopts);
 
-    $ticker = $options['ticker'] ?? 'AAPL'; // Default to AAPL
+    // Support positional argument or named option
+    $ticker = $options['ticker'] ?? ($argv[1] ?? 'AAPL');
+    if ($ticker === 'force' && isset($argv[2])) {
+        $ticker = $argv[2];
+    }
+    // Clean ticker
+    $ticker = strtoupper(trim($ticker));
 
     echo "Analyzing Ticker: $ticker\n";
 
@@ -208,7 +214,8 @@ try {
     echo "Quality Tier: " . $tier . "\n";
     echo "Recommended Position: " . ($size * 100) . "%\n";
 
-    // 5. Database Save
+
+    // 5. Database Save & Report Generation
     try {
         $dbConnection = DatabaseFactory::create($config['database']['default']);
 
@@ -226,8 +233,23 @@ try {
 
         echo "\nAnalysis saved to database successfully. ✅\n";
 
+        // 6. Generate Human-Readable Report
+        echo "\n-----------------------------------------------\n";
+        echo "Generating Analyst Report...\n";
+
+        $reportRepo = new \SixGates\Repositories\ReportRepository($dbConnection);
+        $reportService = new \SixGates\Services\ReportGeneratorService($anthropicProvider, $reportRepo);
+
+        $report = $reportService->generateAndSave($fullResult);
+
+        echo "\n--- 📝 SYSTEM ANALYSIS REPORT ---\n";
+        echo $report->reportContent . "\n";
+        echo "---------------------------------\n";
+        echo "Report saved to database. ✅\n";
+
+
     } catch (\Exception $e) {
-        echo "\n\033[33mWARNING: Could not save to database: " . $e->getMessage() . "\033[0m\n";
+        echo "\n\033[33mWARNING: Could not save to database or generate report: " . $e->getMessage() . "\033[0m\n";
     }
 
 } catch (\Exception $e) {
