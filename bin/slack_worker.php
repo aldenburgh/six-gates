@@ -183,6 +183,8 @@ try {
                 }
             } elseif (is_bool($val)) {
                 $formattedVal = $val ? 'Yes' : 'No';
+            } elseif (is_array($val)) {
+                $formattedVal = implode(', ', $val);
             }
 
             $detailsText .= "• {$label}: {$formattedVal}\n";
