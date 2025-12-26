@@ -11,7 +11,7 @@ $config = require __DIR__ . '/../config/database.php';
 $conn = DatabaseFactory::create($config['default']);
 
 echo "Checking Analysis Results for GOOG...\n";
-$sql = "SELECT * FROM analysis_results WHERE ticker = 'GOOG' ORDER BY id DESC LIMIT 1";
+$sql = "SELECT * FROM stock_analyses WHERE ticker = 'GOOG' ORDER BY id DESC LIMIT 1";
 $row = $conn->executeQuery($sql)->fetchAssociative();
 
 if ($row) {

@@ -51,8 +51,7 @@ try {
 
     $cache = new FilesystemAdapter('six_gates', 3600, __DIR__ . '/../storage/cache');
     $dataProvider = new CacheableProviderDecorator($fmpProvider, $cache);
-
-    // echo "NOTICE: Using Mock Data Provider (FMP Key Issue)\n";
+    // echo "NOTICE: Using Mock Data Provider (FMP API Issues)\n";
     // $dataProvider = new \SixGates\DataProviders\MockDataProvider();
 
     // 3. Gates

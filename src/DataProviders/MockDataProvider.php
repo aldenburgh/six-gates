@@ -4,107 +4,143 @@ namespace SixGates\DataProviders;
 
 class MockDataProvider implements DataProviderInterface
 {
-    private array $mockData;
-
-    public function __construct()
-    {
-        $this->mockData = $this->loadMockData();
-    }
-
-    private function loadMockData(): array
-    {
-        // Basic AAPL-like data that passes most gates for testing
-        return [
-            'income' => [
-                ['revenue' => 383285000000, 'operatingIncome' => 114301000000, 'netIncome' => 96995000000, 'interestExpense' => 3933000000, 'ebitda' => 125820000000, 'date' => '2023-09-30'],
-                ['revenue' => 394328000000, 'operatingIncome' => 119437000000, 'netIncome' => 99803000000, 'interestExpense' => 2931000000, 'ebitda' => 130541000000, 'date' => '2022-09-30'],
-                ['revenue' => 365817000000, 'operatingIncome' => 108949000000, 'netIncome' => 94680000000, 'interestExpense' => 2645000000, 'ebitda' => 120233000000, 'date' => '2021-09-30'],
-                ['revenue' => 274515000000, 'operatingIncome' => 66288000000, 'netIncome' => 57411000000, 'interestExpense' => 2873000000, 'ebitda' => 77344000000, 'date' => '2020-09-30'],
-                ['revenue' => 260174000000, 'operatingIncome' => 63930000000, 'netIncome' => 55256000000, 'interestExpense' => 3576000000, 'ebitda' => 76477000000, 'date' => '2019-09-30'],
-            ],
-            'balance' => [
-                ['totalAssets' => 352583000000, 'netReceivables' => 29508000000, 'shortTermDebt' => 15613000000, 'longTermDebt' => 95281000000, 'date' => '2023-09-30'],
-                ['totalAssets' => 352755000000, 'netReceivables' => 28184000000, 'shortTermDebt' => 9982000000, 'longTermDebt' => 98959000000, 'date' => '2022-09-30'],
-                ['totalAssets' => 351002000000, 'netReceivables' => 26278000000, 'shortTermDebt' => 6000000000, 'longTermDebt' => 109106000000, 'date' => '2021-09-30'],
-                ['totalAssets' => 323888000000, 'netReceivables' => 16120000000, 'shortTermDebt' => 13769000000, 'longTermDebt' => 98667000000, 'date' => '2020-09-30'],
-                ['totalAssets' => 338516000000, 'netReceivables' => 22926000000, 'shortTermDebt' => 10260000000, 'longTermDebt' => 91807000000, 'date' => '2019-09-30'],
-            ],
-            'cash' => [
-                ['freeCashFlow' => 99584000000, 'operatingCashFlow' => 110543000000, 'date' => '2023-09-30'],
-                ['freeCashFlow' => 111443000000, 'operatingCashFlow' => 122151000000, 'date' => '2022-09-30'],
-                ['freeCashFlow' => 92953000000, 'operatingCashFlow' => 104038000000, 'date' => '2021-09-30'],
-                ['freeCashFlow' => 73365000000, 'operatingCashFlow' => 80674000000, 'date' => '2020-09-30'],
-                ['freeCashFlow' => 58896000000, 'operatingCashFlow' => 69391000000, 'date' => '2019-09-30'],
-            ],
-            'metrics' => [
-                ['roic' => 0.28, 'netDebtToEBITDA' => 0.8, 'date' => '2023-09-30'],
-                ['roic' => 0.30, 'netDebtToEBITDA' => 0.7, 'date' => '2022-09-30'],
-                ['roic' => 0.29, 'netDebtToEBITDA' => 0.9, 'date' => '2021-09-30'],
-                ['roic' => 0.20, 'netDebtToEBITDA' => 1.1, 'date' => '2020-09-30'],
-                ['roic' => 0.19, 'netDebtToEBITDA' => 1.2, 'date' => '2019-09-30'],
-            ],
-            'ratios' => [
-                ['priceToEarningsRatio' => 28.5, 'pegRatio' => 1.2, 'priceToFreeCashFlowsRatio' => 25.0, 'dividendYield' => 0.005, 'date' => '2023-09-30'],
-                ['priceToEarningsRatio' => 25.0, 'pegRatio' => 1.1, 'priceToFreeCashFlowsRatio' => 22.0, 'dividendYield' => 0.006, 'date' => '2022-09-30'],
-                ['priceToEarningsRatio' => 30.0, 'pegRatio' => 1.5, 'priceToFreeCashFlowsRatio' => 28.0, 'dividendYield' => 0.005, 'date' => '2021-09-30'],
-                ['priceToEarningsRatio' => 35.0, 'pegRatio' => 2.0, 'priceToFreeCashFlowsRatio' => 30.0, 'dividendYield' => 0.006, 'date' => '2020-09-30'],
-                ['priceToEarningsRatio' => 20.0, 'pegRatio' => 1.0, 'priceToFreeCashFlowsRatio' => 18.0, 'dividendYield' => 0.007, 'date' => '2019-09-30'],
-            ],
-            'estimate' => [
-                ['date' => '2024-01-01', 'estimatedEpsAvg' => 6.50, 'numberAnalystsEstimatedIeps' => 30],
-            ],
-            'quote' => [
-                'price' => 175.50,
-                'pe' => 28.5,
-                'marketCap' => 2800000000000,
-            ]
-        ];
-    }
-
     public function getIncomeStatement(string $ticker, int $limit = 5): array
     {
-        return array_slice($this->mockData['income'], 0, $limit);
+        return array_fill(0, $limit, [
+            'date' => '2023-09-30',
+            'netIncome' => 100000000000,
+            'revenue' => 383000000000,
+            'eps' => 6.13,
+            'ebitda' => 125000000000,
+            'interestExpense' => 3000000000, // Added
+        ]);
     }
-    public function getBalanceSheet(string $ticker, int $limit = 5): array
-    {
-        return array_slice($this->mockData['balance'], 0, $limit);
-    }
-    public function getCashFlow(string $ticker, int $limit = 5): array
-    {
-        return array_slice($this->mockData['cash'], 0, $limit);
-    }
-    public function getKeyMetrics(string $ticker, int $limit = 5): array
-    {
-        return array_slice($this->mockData['metrics'], 0, $limit);
-    }
+
+
+
     public function getRatios(string $ticker, int $limit = 5): array
     {
-        return array_slice($this->mockData['ratios'] ?? [], 0, $limit);
+        return array_fill(0, $limit, [
+            'dividendYield' => 0.005,
+            'payoutRatio' => 0.15,
+            'priceToEarningsRatio' => 30.0, // Added
+            'pegRatio' => 1.2,              // Added
+            'priceToFreeCashFlowRatio' => 25.0, // Added
+        ]);
     }
+
+    public function getBalanceSheet(string $ticker, int $limit = 5): array
+    {
+        return array_fill(0, $limit, [
+            'date' => '2023-09-30',
+            'totalAssets' => 350000000000,
+            'totalLiabilities' => 290000000000,
+            'totalStockholdersEquity' => 60000000000,
+            'cashAndCashEquivalents' => 30000000000,
+            'totalDebt' => 100000000000,
+            'netDebt' => 70000000000,
+            'netReceivables' => 30000000000,
+            'inventory' => 6000000000,
+        ]);
+    }
+
+    public function getCashFlow(string $ticker, int $limit = 5): array
+    {
+        return array_fill(0, $limit, [
+            'freeCashFlow' => 90000000000,
+            'operatingCashFlow' => 110000000000,
+            'capitalExpenditure' => -10000000000,
+            'dividendsPaid' => -15000000000,
+        ]);
+    }
+
+
+
     public function getInsiderTrading(string $ticker): array
-    {
-        return [
-            ['transactionDate' => '2023-11-15', 'transactionType' => 'S-Sale', 'securitiesTransacted' => 10000, 'price' => 180.00],
-            ['transactionDate' => '2023-10-01', 'transactionType' => 'P-Purchase', 'securitiesTransacted' => 5000, 'price' => 170.00],
-            ['transactionDate' => '2023-01-15', 'transactionType' => 'S-Sale', 'securitiesTransacted' => 2000, 'price' => 150.00],
-        ];
-    }
-    public function getAnalystEstimates(string $ticker): array
-    {
-        return $this->mockData['estimate'];
-    }
-    public function getHistoricalPrice(string $ticker): array
     {
         return [];
     }
+
+    public function getKeyMetrics(string $ticker, int $limit = 5): array
+    {
+        return array_fill(0, $limit, [
+            'roic' => 0.25,
+            'returnOnInvestedCapital' => 0.25, // FMP alias
+            'roicTTM' => 0.25,
+            'peRatio' => 30.0,
+            'debtToEquity' => 1.5,
+            'interestCoverage' => 20.0,
+        ]);
+    }
+
+    public function getHistoricalPrice(string $ticker): array
+    {
+        // Simple decline from 250 to 200
+        $prices = [];
+        for ($i = 0; $i < 255; $i++) {
+            $prices[] = [
+                'date' => date('Y-m-d', strtotime("-$i days")),
+                'close' => 200.0 + ($i * 0.1),
+                'adjClose' => 200.0 + ($i * 0.1),
+            ];
+        }
+        return $prices;
+    }
+
+    public function getAnalystEstimates(string $ticker): array
+    {
+        return array_fill(0, 5, [
+            'date' => '2025-09-30',
+            'estimatedEpsAvg' => 7.0,
+            'estimatedRevenueAvg' => 450000000000,
+        ]);
+    }
+
     public function getStockNews(string $ticker, int $limit = 50): array
     {
         return [];
     }
+
     public function getQuote(string $ticker): array
     {
-        return [$this->mockData['quote']];
+        // Mock Quote Data
+        $base = [
+            'symbol' => $ticker,
+            'price' => 150.00,
+            'changesPercentage' => 1.5,
+            'change' => 2.25,
+            'dayLow' => 148.00,
+            'dayHigh' => 152.00,
+            'yearHigh' => 180.00,
+            'yearLow' => 120.00,
+            'marketCap' => 2500000000000,
+            'priceAvg50' => 145.00,
+            'priceAvg200' => 140.00,
+            'volume' => 50000000,
+            'avgVolume' => 60000000,
+            'exchange' => 'NASDAQ',
+            'timestamp' => time()
+        ];
+
+        // Specific mocks for Macro
+        if ($ticker === '^VIX') {
+            $base['price'] = 18.50; // Moderate Volatility
+            $base['name'] = 'CBOE Volatility Index';
+        }
+
+        if ($ticker === '10Y') {
+            $base['price'] = 4.20; // 4.2% Yield
+            $base['name'] = '10 Year Treasury Note';
+        }
+
+        if ($ticker === '2Y') {
+            $base['price'] = 4.50; // 4.5% Yield (Inverted Curve)
+            $base['name'] = '2 Year Treasury Note';
+        }
+
+        return [$base];
     }
+
     public function getSectorPerformance(): array
     {
         return [];
@@ -113,13 +149,12 @@ class MockDataProvider implements DataProviderInterface
     public function getCompanyProfile(string $ticker): ?array
     {
         return [
-            'symbol' => $ticker,
-            'companyName' => "Mock $ticker Inc.",
-            'currency' => 'USD',
-            'exchange' => 'NASDAQ',
-            'industry' => 'Consumer Electronics',
+            'companyName' => 'Apple Inc',
             'sector' => 'Technology',
-            'description' => 'Mock description for evaluation.'
+            'industry' => 'Consumer Electronics',
+            'price' => 200.0,
+            'beta' => 1.2,
+            'description' => 'Mock Description',
         ];
     }
 }
