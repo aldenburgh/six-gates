@@ -46,6 +46,11 @@ class SixGatesScorer
 
         $esgData = $provider->getESGData($ticker);
 
-        return new AnalysisResult($ticker, $results, $allPassed, null, null, null, $esgData);
+        // Fetch Profile for Price and Market Cap
+        $profile = $provider->getCompanyProfile($ticker);
+        $price = $profile['price'] ?? null;
+        $mktCap = $profile['mktCap'] ?? $profile['marketCap'] ?? null;
+
+        return new AnalysisResult($ticker, $results, $allPassed, null, null, null, $esgData, $price, $mktCap);
     }
 }

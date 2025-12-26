@@ -57,19 +57,40 @@ class CapitalAllocationGate implements GateInterface
         $netInsiderShares = 0;
         $cutoffDate = date('Y-m-d', strtotime("-{$this->thresholds['insider_net_buy_months']} months"));
 
-        foreach ($insider as $trade) {
-            $tradeDate = $trade['transactionDate'] ?? '';
-            if ($tradeDate >= $cutoffDate) {
-                // Check transactionType: 'P-Purchase', 'S-Sale', etc.
-                // FMP might use diff codes. usually 'P' and 'S' or 'Purchase' 'Sale'.
-                $type = $trade['transactionType'] ?? '';
-                $securities = $trade['securitiesTransacted'] ?? 0;
+        // Insider data is now aggregated statistics (quarterly/yearly usually)
+        foreach ($insider as $record) {
+            // Determine date from 'year' and 'quarter' or just accumulate recent records
+            // Statistics endpoint returns records with 'year', 'quarter'.
+            // Approximate date: Quarter 4 2024 -> 2024-12-31?
+            // Let's assume input is sorted descending (standard API behavior).
+            // We just need to check if the record is within the cutoff period.
 
-                if (stripos($type, 'Purchase') !== false || stripos($type, 'Buy') !== false) {
-                    $netInsiderShares += $securities;
-                } elseif (stripos($type, 'Sale') !== false || stripos($type, 'Sell') !== false) {
-                    $netInsiderShares -= $securities;
-                }
+            $year = $record['year'] ?? 0;
+            $quarter = $record['quarter'] ?? 0;
+
+            // Construct approximate end date of the quarter
+            // Q1: 03-31, Q2: 06-30, Q3: 09-30, Q4: 12-31
+            $month = $quarter * 3;
+            $day = 30; // Approximation
+            if ($month == 3 || $month == 12)
+                $day = 31;
+
+            $recordDate = sprintf("%04d-%02d-%02d", $year, $month, $day);
+
+            if ($recordDate >= $cutoffDate) {
+                // Use totalPurchases and totalSales if available (open market)
+                // Or totalAcquired (includes grants) vs totalDisposed
+                // Prompt implies "net buying vs selling". Open market purchases are strongest signal.
+                // However, sales often include exercised options.
+                // Let's us 'totalPurchases' (Open Market Buy) - 'totalSales' (Open Market Sell) if keys exist.
+                // Debug keys: ..., totalPurchases, totalSales
+
+                // Switch to totalAcquired (buy+grant) - totalDisposed (sell+gift)
+                // This captures volume better than raw transaction counts (purchases/sales)
+                $acquired = $record['totalAcquired'] ?? 0;
+                $disposed = $record['totalDisposed'] ?? 0;
+
+                $netInsiderShares += ($acquired - $disposed);
             }
         }
 
@@ -85,9 +106,9 @@ class CapitalAllocationGate implements GateInterface
         // Let's assume passed if we can't find specific line item in simple mock.
 
         // 4. Dividend Consistency
-        // Check dividendsPaid in Cash Flow. Should not be 0 if they pay.
+        // Check commonDividendsPaid in Cash Flow. Should not be 0 if they pay.
         // Should not drop.
-        $dividends = array_column($cashFlow, 'dividendsPaid');
+        $dividends = array_column($cashFlow, 'commonDividendsPaid');
         $divCuts = 0;
         for ($i = 0; $i < count($dividends) - 1; $i++) {
             // dividendsPaid is negative usually. abs() it.

@@ -184,6 +184,8 @@ try {
     echo "\n-----------------------------------------------\n";
     echo "Full Analysis Run:\n";
     echo "Ticker: $ticker\n";
+    echo "Price: $" . number_format($fullResult->price ?? 0, 2) . "\n";
+    echo "Market Cap: $" . number_format(($fullResult->marketCap ?? 0) / 1000000000, 2) . "B\n";
 
 
     $scorer = new \SixGates\Scoring\SixGatesScorer();
@@ -213,6 +215,17 @@ try {
 
     echo "Quality Tier: " . $tier . "\n";
     echo "Recommended Position: " . ($size * 100) . "%\n";
+
+    // ESG Display
+    if (!empty($fullResult->esgData)) {
+        echo "\n[Sustainability Profile (ESG)]:\n";
+        $esg = $fullResult->esgData;
+        echo " - Rating: " . ($esg['rating'] ?? 'N/A') . "\n";
+        echo " - ESG Score: " . ($esg['esgScore'] ?? $esg['ESGScore'] ?? 'N/A') . "\n";
+        echo " - Environmental: " . ($esg['environmentalScore'] ?? 'N/A') . "\n";
+        echo " - Social: " . ($esg['socialScore'] ?? 'N/A') . "\n";
+        echo " - Governance: " . ($esg['governanceScore'] ?? 'N/A') . "\n";
+    }
 
 
     // 5. Database Save & Report Generation

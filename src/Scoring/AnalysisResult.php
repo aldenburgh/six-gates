@@ -11,7 +11,9 @@ class AnalysisResult
         public readonly ?string $qualityTier = null,
         public readonly ?float $positionSize = null,
         public readonly ?array $marketContext = null,
-        public readonly ?array $esgData = null
+        public readonly ?array $esgData = null,
+        public readonly ?float $price = null,
+        public readonly ?float $marketCap = null
     ) {
     }
 
@@ -24,7 +26,9 @@ class AnalysisResult
             $tier,
             $size,
             $context,
-            $this->esgData
+            $this->esgData,
+            $this->price,
+            $this->marketCap
         );
     }
 

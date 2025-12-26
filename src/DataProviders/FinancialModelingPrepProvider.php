@@ -19,9 +19,19 @@ class FinancialModelingPrepProvider implements DataProviderInterface
             $query['apikey'] = $this->apiKey;
             $response = $this->client->request('GET', $endpoint, ['query' => $query]);
             return json_decode($response->getBody()->getContents(), true) ?? [];
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $statusCode = $response ? $response->getStatusCode() : 0;
+
+            // Handle 403 Forbidden or 401 Unauthorized (e.g. Free Tier Limits)
+            if ($statusCode === 403 || $statusCode === 401) {
+                error_log("FMP API Access Denied ($statusCode) for endpoint: $endpoint. Msg: " . $e->getMessage());
+                return []; // Fail gracefully
+            }
+
+            throw new \RuntimeException("FMP API Error: " . $e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
-            // In a real app we'd log this or throw a custom exception
-            // Propagate code (e.g. 402) for handling
+            // Propagate other errors (e.g. connection issues)
             throw new \RuntimeException("FMP API Error: " . $e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -64,7 +74,9 @@ class FinancialModelingPrepProvider implements DataProviderInterface
     public function getInsiderTrading(string $ticker): array
     {
         try {
-            return $this->fetch("insider-trading", ['symbol' => $ticker, 'limit' => 100]);
+            // v4 is required for insider trading now
+            // Use statistics endpoint as it is stable and provides aggregated data
+            return $this->fetch("insider-trading/statistics", ['symbol' => $ticker, 'limit' => 100]);
         } catch (\RuntimeException $e) {
             return [];
         }
@@ -72,13 +84,13 @@ class FinancialModelingPrepProvider implements DataProviderInterface
 
     public function getAnalystEstimates(string $ticker): array
     {
-        return $this->fetch("analyst-estimates", ['symbol' => $ticker, 'period' => 'annual', 'limit' => 10]);
+        return $this->fetch("analyst-estimates/{$ticker}", ['period' => 'annual', 'limit' => 10]);
     }
 
     public function getHistoricalPrice(string $ticker): array
     {
         // Stable API Historical
-        $data = $this->fetch("historical-price-full", ['symbol' => $ticker]);
+        $data = $this->fetch("historical-price-full/{$ticker}");
         return $data['historical'] ?? $data;
     }
 
@@ -96,7 +108,7 @@ class FinancialModelingPrepProvider implements DataProviderInterface
 
     public function getQuote(string $ticker): array
     {
-        return $this->fetch("quote", ['symbol' => $ticker]);
+        return $this->fetch("quote/{$ticker}");
     }
 
     public function getSectorPerformance(): array
@@ -106,17 +118,17 @@ class FinancialModelingPrepProvider implements DataProviderInterface
 
     public function getCompanyProfile(string $ticker): ?array
     {
-        $data = $this->fetch("profile", ['symbol' => $ticker]);
+        $data = $this->fetch("profile/{$ticker}");
         return $data[0] ?? null;
     }
 
     public function getESGData(string $ticker): ?array
     {
         try {
-            // "v3/esg-environmental-social-governance-data-ratings" matches standard FMP
-            $data = $this->fetch("v3/esg-environmental-social-governance-data-ratings", ['symbol' => $ticker]);
+            // Use absolute URL as provided by user: https://financialmodelingprep.com/stable/esg-ratings
+            $data = $this->fetch("https://financialmodelingprep.com/stable/esg-ratings", ['symbol' => $ticker]);
             return $data[0] ?? null;
-        } catch (\RuntimeException $e) {
+        } catch (\Exception $e) {
             return null;
         }
     }

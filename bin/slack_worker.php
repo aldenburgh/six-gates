@@ -134,6 +134,8 @@ try {
         'fields' => [
             ['type' => 'mrkdwn', 'text' => "*Tier:*\n$tierEmoji $tier"],
             ['type' => 'mrkdwn', 'text' => "*Rec. Size:*\n" . ($size * 100) . "%"],
+            ['type' => 'mrkdwn', 'text' => "*Price:*\n$" . number_format($fullResult->price ?? 0, 2)],
+            ['type' => 'mrkdwn', 'text' => "*Mkt Cap:*\n$" . number_format(($fullResult->marketCap ?? 0) / 1000000000, 2) . "B"],
         ]
     ];
 
@@ -224,8 +226,8 @@ try {
         if (isset($esg['ESGRiskRating'])) {
             $esgText .= "• *Risk Rating:* " . $esg['ESGRiskRating'] . "\n";
         }
-        if (isset($esg['ESGScore'])) {
-            $esgText .= "• *Score:* " . number_format($esg['ESGScore'], 2) . "\n";
+        if (isset($esg['esgScore']) || isset($esg['ESGScore'])) {
+            $esgText .= "• *Score:* " . number_format($esg['esgScore'] ?? $esg['ESGScore'], 2) . "\n";
         }
         if (isset($esg['environmentalScore'])) {
             $esgText .= "• *Env Score:* " . number_format($esg['environmentalScore'], 2) . "\n";

@@ -1,57 +1,78 @@
 <?php
-
 require __DIR__ . '/../vendor/autoload.php';
 
+use Dotenv\Dotenv;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
 
-// Hardcoded for debugging
-$apiKey = '6LbGFAC3kxVvMvXw8JxTYTDJ39PQOCmK';
-$baseUrl = 'https://financialmodelingprep.com/api/'; // Ending with api/
+$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
 
-$client = new Client([
-    'base_uri' => $baseUrl,
-    'timeout' => 10.0,
-    'verify' => false
-]);
+$apiKey = $_ENV['FMP_API_KEY'] ?? null;
+if (!$apiKey) {
+    die("FMP_API_KEY not found in .env\n");
+}
+
+$client = new Client(['base_uri' => 'https://financialmodelingprep.com/stable/']);
+
+// 1. Inspect Cash Flow
+echo "\n--- Cash Flow Inspection ---\n";
+$url = "https://financialmodelingprep.com/stable/cash-flow-statement?symbol=AAPL&limit=5&period=annual&apikey=$apiKey";
+echo "Testing: $url\n";
+try {
+    $res = $client->get($url);
+    $data = json_decode($res->getBody(), true);
+    echo "Count: " . count($data) . "\n";
+    if (count($data) > 0) {
+        // echo "Keys: " . implode(", ", array_keys($data[0])) . "\n";
+        foreach ($data as $i => $item) {
+            echo "[$i] commonDividendsPaid: " . ($item['commonDividendsPaid'] ?? 'MISSING') . "\n";
+        }
+    }
+} catch (\Exception $e) {
+    echo "Failed: " . $e->getMessage() . "\n";
+}
+
+// 2. Test Insider Statistics
+echo "\n--- Insider Statistics ---\n";
+$url = "https://financialmodelingprep.com/stable/insider-trading/statistics?symbol=AAPL&apikey=$apiKey";
+echo "Testing: $url\n";
+try {
+    $res = $client->get($url);
+    $data = json_decode($res->getBody(), true);
+    echo "Count: " . count($data) . "\n";
+    if (count($data) > 0) {
+        $rec = $data[0];
+        echo "Sample Record (Newest):\n";
+        echo "Year/Q: " . $rec['year'] . " Q" . $rec['quarter'] . "\n";
+        echo "totalAcquired: " . $rec['totalAcquired'] . "\n";
+        echo "totalDisposed: " . $rec['totalDisposed'] . "\n";
+    }
+} catch (\Exception $e) {
+    echo "Failed: " . $e->getMessage() . "\n";
+}
+
+// 3. Test Balance Sheet & Income Statement (Consistency)
+echo "\n--- Financial Statements Consistency Test ---\n";
 
 $endpoints = [
-    'Quote (Basic)' => 'v3/quote/AAPL',
-    'Key Metrics (Annual)' => 'v3/key-metrics/AAPL?period=annual',
-    'Key Metrics TTM (v3)' => 'v3/key-metrics-ttm/AAPL',
-    'Ratios TTM (v3)' => 'v3/ratios-ttm/AAPL',
-    'Financials As Reported' => 'v3/financial-statement-full-as-reported/AAPL',
-    'Score (v4)' => 'v4/score?symbol=AAPL',
-    'Key Metrics Bulk (v4)' => 'v4/key-metrics-bulk?year=2023&period=annual',
-    'Company Profile (v3)' => 'v3/profile/AAPL',
+    'Balance Sheet' => "https://financialmodelingprep.com/stable/balance-sheet-statement?symbol=AAPL&limit=5&period=annual&apikey=$apiKey",
+    'Income Statement' => "https://financialmodelingprep.com/stable/income-statement?symbol=AAPL&limit=5&period=annual&apikey=$apiKey"
 ];
 
-echo "Testing FMP API with Key: " . substr($apiKey, 0, 5) . "...\n";
-echo "Base URL: $baseUrl\n\n";
-
-foreach ($endpoints as $name => $path) {
-    echo "Testing [$name]: $path ... ";
+foreach ($endpoints as $name => $u) {
+    echo "$name: $u\n";
     try {
-        // Append API Key manually
-        $separator = str_contains($path, '?') ? '&' : '?';
-        $fullPath = $path . $separator . 'apikey=' . $apiKey;
-
-        $response = $client->get($fullPath);
-        $statusCode = $response->getStatusCode();
-        $body = $response->getBody()->getContents();
-        $json = json_decode($body, true);
-
-        if ($statusCode === 200 && !empty($json)) {
-            echo "OK " . (is_array($json) ? "(Count: " . count($json) . ")" : "") . "\n";
-            // echo substr($body, 0, 100) . "...\n";
-        } else {
-            echo "Failed (Status: $statusCode, Body: " . substr($body, 0, 50) . ")\n";
+        $res = $client->get($u);
+        $data = json_decode($res->getBody(), true);
+        echo "Status: " . $res->getStatusCode() . "\n";
+        echo "Count: " . count($data) . "\n";
+        if (count($data) > 0) {
+            echo "Sample Keys: " . implode(", ", array_slice(array_keys($data[0]), 0, 10)) . "...\n";
+            if ($name === 'Income Statement') {
+                echo "weightedAverageShsOut: " . ($data[0]['weightedAverageShsOut'] ?? 'MISSING') . "\n";
+            }
         }
-    } catch (ClientException $e) {
-        echo "ERROR " . $e->getCode() . "\n";
-        echo "Response: " . $e->getResponse()->getBody()->getContents() . "\n";
     } catch (\Exception $e) {
-        echo "EXCEPTION: " . $e->getMessage() . "\n";
+        echo "Failed: " . $e->getMessage() . "\n";
     }
-    echo "--------------------------------------------------\n";
 }
