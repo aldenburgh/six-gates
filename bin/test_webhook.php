@@ -8,7 +8,7 @@ $dotenv->load();
 
 $signingSecret = $_ENV['SLACK_SIGNING_SECRET'];
 $timestamp = time();
-$body = 'token=gIkuvaNzQIHg97ATvDxqgjtO&team_id=T0001&team_domain=example&channel_id=C2147483705&channel_name=test&user_id=U2147483697&user_name=Steve&command=/sixgates&text=analyze AAPL&response_url=https://hooks.slack.com/commands/1234/5678&trigger_id=13345224609.738474920.8088930838d88f008e0';
+$body = 'token=MOCK_VERIFICATION_TOKEN&team_id=T0001&team_domain=example&channel_id=C2147483705&channel_name=test&user_id=U2147483697&user_name=Steve&command=/sixgates&text=analyze AAPL&response_url=https://hooks.slack.com/commands/1234/5678&trigger_id=13345224609.738474920.8088930838d88f008e0';
 
 $baseString = "v0:$timestamp:$body";
 $signature = 'v0=' . hash_hmac('sha256', $baseString, $signingSecret);
