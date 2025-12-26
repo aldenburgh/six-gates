@@ -211,6 +211,38 @@ try {
         'text' => ['type' => 'mrkdwn', 'text' => $detailsText]
     ];
 
+
+    // ESG Section
+    if (!empty($fullResult->esgData)) {
+        $esg = $fullResult->esgData;
+        $esgText = "*Sustainability Profile (ESG)*\n";
+        $esgText .= "• *Rating:* " . ($esg['ESGScore'] ?? 'N/A') . "\n"; // FMP structure varies, let's assume raw dump or verify
+        // FMP "v3/esg-environmental-social-governance-data-ratings" returns:
+        // { "symbol": "AAPL", "esgScore": 72.5, "environmentScore": 72.5, "socialScore": 72.5, "governanceScore": 72.5, "rating": "A" ... }
+        // Or similar fields. Let's dump all relevant ones.
+
+        if (isset($esg['ESGRiskRating'])) {
+            $esgText .= "• *Risk Rating:* " . $esg['ESGRiskRating'] . "\n";
+        }
+        if (isset($esg['ESGScore'])) {
+            $esgText .= "• *Score:* " . number_format($esg['ESGScore'], 2) . "\n";
+        }
+        if (isset($esg['environmentalScore'])) {
+            $esgText .= "• *Env Score:* " . number_format($esg['environmentalScore'], 2) . "\n";
+        }
+        if (isset($esg['socialScore'])) {
+            $esgText .= "• *Soc Score:* " . number_format($esg['socialScore'], 2) . "\n";
+        }
+        if (isset($esg['governanceScore'])) {
+            $esgText .= "• *Gov Score:* " . number_format($esg['governanceScore'], 2) . "\n";
+        }
+
+        $blocks[] = [
+            'type' => 'section',
+            'text' => ['type' => 'mrkdwn', 'text' => $esgText]
+        ];
+    }
+
     $blocks[] = [
         'type' => 'divider'
     ];

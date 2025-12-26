@@ -42,6 +42,10 @@ class SixGatesScorer
             }
         }
 
-        return new AnalysisResult($ticker, $results, $allPassed);
+
+
+        $esgData = $provider->getESGData($ticker);
+
+        return new AnalysisResult($ticker, $results, $allPassed, null, null, null, $esgData);
     }
 }

@@ -10,7 +10,8 @@ class AnalysisResult
         public readonly bool $passedQuality,
         public readonly ?string $qualityTier = null,
         public readonly ?float $positionSize = null,
-        public readonly ?array $marketContext = null
+        public readonly ?array $marketContext = null,
+        public readonly ?array $esgData = null
     ) {
     }
 
@@ -22,7 +23,8 @@ class AnalysisResult
             $this->passedQuality,
             $tier,
             $size,
-            $context
+            $context,
+            $this->esgData
         );
     }
 

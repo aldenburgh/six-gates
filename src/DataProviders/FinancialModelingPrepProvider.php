@@ -109,4 +109,15 @@ class FinancialModelingPrepProvider implements DataProviderInterface
         $data = $this->fetch("profile", ['symbol' => $ticker]);
         return $data[0] ?? null;
     }
+
+    public function getESGData(string $ticker): ?array
+    {
+        try {
+            // "v3/esg-environmental-social-governance-data-ratings" matches standard FMP
+            $data = $this->fetch("v3/esg-environmental-social-governance-data-ratings", ['symbol' => $ticker]);
+            return $data[0] ?? null;
+        } catch (\RuntimeException $e) {
+            return null;
+        }
+    }
 }

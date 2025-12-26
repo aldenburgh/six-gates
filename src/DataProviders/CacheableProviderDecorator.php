@@ -163,4 +163,19 @@ class CacheableProviderDecorator implements DataProviderInterface
 
         return $item->get();
     }
+
+    public function getESGData(string $ticker): ?array
+    {
+        $item = $this->cache->getItem("fmp.esg.{$ticker}");
+
+        if (!$item->isHit()) {
+            $data = $this->tweed->getESGData($ticker);
+            $item->set($data);
+            $item->expiresAfter(86400 * 7); // Cache for a week, changes slowly
+            $this->cache->save($item);
+            return $data;
+        }
+
+        return $item->get();
+    }
 }
