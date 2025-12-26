@@ -85,7 +85,7 @@ class FinancialModelingPrepProvider implements DataProviderInterface
     public function getStockNews(string $ticker, int $limit = 50): array
     {
         try {
-            return $this->fetch("stock_news", ['tickers' => $ticker, 'limit' => $limit]);
+            return $this->fetch("v3/stock_news", ['tickers' => $ticker, 'limit' => $limit]);
         } catch (\RuntimeException $e) {
             echo "NEWS FETCH ERROR: " . $e->getMessage() . "\n";
             return [];
