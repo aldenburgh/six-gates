@@ -86,7 +86,7 @@ class FinancialModelingPrepProvider implements DataProviderInterface
     {
         try {
             // Use full URL to bypass client base_uri (which is /stable)
-            return $this->fetch("https://financialmodelingprep.com/api/v3/stock_news", ['tickers' => $ticker, 'limit' => $limit]);
+            return $this->fetch("https://financialmodelingprep.com/stable/stock_news", ['tickers' => $ticker, 'limit' => $limit]);
         } catch (\RuntimeException $e) {
             error_log("NEWS FETCH ERROR: " . $e->getMessage());
             return [];
