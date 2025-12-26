@@ -10,69 +10,46 @@
 
 The system is designed to remove emotional decision-making from investing by enforcing a rigid **8-Gate Quality Analysis** framework and a strict **Valuation Discipline**.
 
-## 🎯 The Mission
-
-Transitioning from a passive analyzer to an active advisor, the system operates with one clear objective:
-
-*   **Target:** €20,000 / month in passive dividend income.
-*   **Timeline:** 10 Years (2025–2035).
-*   **Strategy:** Dual Portfolio Approach (Growth for capital compounding, Dividend for income generation).
-*   **Execution:** 100% Manual User Control (The system advises; YOU execute).
-
----
-
-## 🏗 System Architecture
-
-The project follows a clean **3-Layer Architecture**:
-
-1.  **Frontend (iPad/CLI):** Presentational layer for reviewing recommendations, approving/denying trades, and logging executions.
-2.  **Backend API (Service Layer):** Encapsulates extensive business logic for scoring, position sizing, order type advice, and portfolio management.
-3.  **Database (MySQL):** The single source of truth for all positions, analysis history, recommendations, and execution logs.
-
-### Core Components
-
-*   **The Six Gates Engine:** A pipeline of 8 strict criteria (ROIC, Moat, Debt, Cash Flow, etc.) that every stock must pass.
-*   **Market Context Assessor:** Adjusts risk tolerance and position sizing based on macro factors (VIX, Yield Spreads, CAPE).
-*   **Recommendation Engine:** Generates specific advise (e.g., "Buy 658 shares of JNJ at €152.00 (Limit)").
-*   **Execution Logger:** Tracks the variance between recommended trades and actual execution to refine future advice.
-
----
-
 ## 🚀 Key Features (V6.0)
 
-### 1. Actionable Recommendations
-Instead of a generic "Buy Rating", Six Gates provides a complete trade ticket:
-*   **Specific Quantity:** Calculated based on portfolio weight and quality tier.
-*   **Order Type:** `LIMIT` for standard trades, `MARKET` for urgent exits.
-*   **Price Guidance:** Exact limit price targets based on fair value discount.
-*   **Validity:** dynamic expiration dates (3-7 days) based on market volatility.
+### 1. 🤖 AI Analyst Reports (NEW)
+The system now integrates **Anthropic's Claude 3.5 Sonnet** to generate human-readable investment memos.
+-   **Narrative Analysis:** Translates complex raw metrics into a clear "Buy/Pass" narrative.
+-   **Reasoning:** Explains the "Why" behind the decision, highlighting critical strengths and weaknesses.
+-   **Revision Criteria:** Each report includes a specific "Conditions for Revision" section, explicitly listing market or company events that would warrant a re-evaluation.
+-   **Context Aware:** Compares current analysis with previous reports to highlight trend changes.
 
-### 2. Approval Workflow
-A disciplined decision-making process:
-*   **Approve:** Accepts the recommendation. System waits for execution log.
-*   **Deny:** Rejects the trade. User must provide a reason (e.g., "Insufficient Funds", "Market Timing").
+### 2. 🛡 The 8 Gates Framework
+A strict filtering pipeline that every stock must pass:
+1.  **Gate 1: The Incumbent Check** (Revenue Growth & Stability)
+2.  **Gate 1.5: The Moat Assessment** (LLM-based competitive advantage analysis)
+3.  **Gate 2: The Economic Engine** (ROIC > 15%, WACC Spread)
+4.  **Gate 2.5: Financial Health** (Debt/EBITDA < 3.0)
+5.  **Gate 2.75: Capital Allocation** (Share buybacks vs Dilution)
+6.  **Gate 3: Cash Integrity** (FCF Conversion > 80%)
+7.  **Gate 3.5: Complexity Filter** (Business simplicity score)
+8.  **Gate 4: Valuation Discipline** (Fair Value Discount)
 
-### 3. Execution Logging
-Closing the loop between advice and reality. After executing a trade at your broker, you log:
-*   Actual Shares Bought/Sold
-*   Actual Execution Price
-*   Commissions
-*   *System automatically tracks variance against the recommendation.*
+### 3. Actionable Recommendations
+Six Gates provides a complete trade ticket:
+-   **Specific Quantity:** Calculated based on portfolio weight and quality tier.
+-   **Order Type:** `LIMIT` for standard trades, `MARKET` for urgent exits.
+-   **Price Guidance:** Exact limit price targets based on fair value discount.
+-   **Validity:** Dynamic expiration dates (3-7 days) based on market volatility.
 
 ### 4. Portfolio Intelligence
-*   **Growth Portfolio:** Focus on "Compounders" (high ROIC, reinvestment).
-*   **Dividend Portfolio:** Focus on "Aristocrats" (reliable cash flow).
-*   **Rotation Logic:** Automatically suggests rotating profits from Growth -> Dividend when targets are hit.
+-   **Market Context:** Adjusts risk tolerance and position sizing based on macro factors (VIX, Yield Spreads).
+-   **Execution Logging:** Tracks the variance between recommended trades and actual execution.
 
 ---
 
 ## 🛠 Tech Stack
 
-*   **Language:** PHP 8.2+
-*   **Database:** MySQL 8.0
-*   **LLM Integration:** Anthropic Claude 3.5 Sonnet (for Qualitative Moat Analysis & Narratives)
-*   **Data Source:** Financial Modeling Prep (FMP) Premium API
-*   **Infrastructure:** Local/Docker (Designed for self-hosted privacy)
+-   **Language:** PHP 8.2+
+-   **Database:** MySQL 8.0
+-   **AI Core:** Anthropic Claude 3.5 Sonnet (Moat Analysis & Report Generation)
+-   **Data Provider:** Financial Modeling Prep (FMP) Premium API
+-   **Infrastructure:** Local CLI / Cron
 
 ---
 
@@ -90,38 +67,43 @@ Closing the loop between advice and reality. After executing a trade at your bro
     ```
 
 3.  **Configure Environment**
-    Copy `.env.example` to `.env` and populate your keys:
+    Copy `.env.example` to `.env` and set your API keys:
     ```ini
     DB_DATABASE=six_gates
     DB_USERNAME=root
     DB_PASSWORD=your_password
+    
+    # Data Providers
     FMP_API_KEY=your_fmp_key
+    NEWS_API_KEY=your_news_key (Optional)
+    
+    # LLM
     ANTHROPIC_API_KEY=your_claude_key
+    ANTHROPIC_MODEL=claude-3-sonnet-20240229
     ```
 
 4.  **Initialize Database**
-    Run the V6 migration suite to create the schema (warning: resets DB):
+    Run the V6 migration suite to create the schema:
     ```bash
     php bin/migrate.php --fresh
     ```
 
-5.  **Run Analysis**
-    ```bash
-    php bin/advisor.php
-    ```
-
 ---
 
-## 📉 The 8 Gates (Analysis Framework)
+## 💻 Usage
 
-1.  **Gate 1: The Incumbent Check** (Revenue Growth & Stability)
-2.  **Gate 1.5: The Moat Assessment** (LLM-based competitive advantage analysis)
-3.  **Gate 2: The Economic Engine** (ROIC > 15%, WACC Spread)
-4.  **Gate 2.5: Financial Health** (Debt/EBITDA < 3.0)
-5.  **Gate 2.75: Capital Allocation** (Share buybacks vs Dilution)
-6.  **Gate 3: Cash Flow King** (FCF Conversion > 80%)
-7.  **Gate 3.5: Complexity Check** (Business simplicity score)
-8.  **Gate 4: Valuation Discipline** (Fair Value Discount)
+### Quick Analysis (Single Ticker)
+Run a full analysis and generate a report for a specific stock:
+```bash
+php bin/analyze.php --ticker AAPL
+```
+*Output: Quality Pass/Fail, Gate Scores, and the AI-generated Analyst Report.*
+
+### Full Advisor Mode
+Launch the interactive advisor for portfolio management and batch processing:
+```bash
+php bin/advisor.php
+```
 
 ---
 
