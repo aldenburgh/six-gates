@@ -156,8 +156,21 @@ try {
 
     // Detailed Gate Metrics
     $detailsText = "*Detailed Parameters:*\n";
+
+    $gateNamesMap = [
+        'gate_1' => 'Capital Allocation',
+        'gate_1_5' => 'Moat Assessment',
+        'gate_2' => 'Economic Engine',
+        'gate_2_5' => 'Capital Structure',
+        'gate_2_75' => 'Reinvestment Runway',
+        'gate_3' => 'Cash Integrity',
+        'gate_3_5' => 'Complexity Filter',
+        'gate_4' => 'Valuation',
+        'gate_5' => 'Narrative Arbitrage',
+    ];
+
     foreach ($fullResult->gateResults as $gateName => $result) {
-        $cleanName = ucwords(str_replace(['_', 'gate'], [' ', ''], $gateName));
+        $cleanName = $gateNamesMap[$gateName] ?? ucwords(str_replace(['_', 'gate'], [' ', ''], $gateName));
         $statusIcon = $result->passed ? "✅" : "❌";
         $detailsText .= "*{$cleanName}* {$statusIcon}\n";
 
@@ -175,11 +188,12 @@ try {
                     str_contains(strtolower($key), 'yield') ||
                     str_contains(strtolower($key), 'wacc') ||
                     str_contains(strtolower($key), 'spread') ||
-                    str_contains(strtolower($key), 'cagr')
+                    str_contains(strtolower($key), 'cagr') ||
+                    str_contains(strtolower($key), 'pct')
                 ) {
-                    $formattedVal = number_format($val * 100, 2) . '%';
+                    $formattedVal = number_format($val * 100, 4) . '%';
                 } else {
-                    $formattedVal = number_format($val, 2);
+                    $formattedVal = number_format($val, 4);
                 }
             } elseif (is_bool($val)) {
                 $formattedVal = $val ? 'Yes' : 'No';
@@ -201,13 +215,6 @@ try {
         'type' => 'divider'
     ];
 
-    // Truncate report content if too long (Slack limit 3000 chars for text blocks usually)
-    // We'll just show the recommendation and summary.
-    // The report content from LLM usually has a "RECOMMENDATION:" line.
-
-    $reportText = $report->reportContent;
-    // Just send the whole thing in a code block or section?
-    // Section is better but limited length.
     // Chunk report text if too long (Slack limit ~3000 chars per block)
     $reportText = $report->reportContent;
     $maxLen = 2800;
