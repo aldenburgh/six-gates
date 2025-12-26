@@ -85,7 +85,8 @@ class FinancialModelingPrepProvider implements DataProviderInterface
     public function getStockNews(string $ticker, int $limit = 50): array
     {
         try {
-            return $this->fetch("v3/stock_news", ['tickers' => $ticker, 'limit' => $limit]);
+            // Use full URL to bypass client base_uri (which is /stable)
+            return $this->fetch("https://financialmodelingprep.com/api/v3/stock_news", ['tickers' => $ticker, 'limit' => $limit]);
         } catch (\RuntimeException $e) {
             error_log("NEWS FETCH ERROR: " . $e->getMessage());
             return [];
