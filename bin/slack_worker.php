@@ -154,6 +154,47 @@ try {
         'text' => ['type' => 'mrkdwn', 'text' => $summary]
     ];
 
+    // Detailed Gate Metrics
+    $detailsText = "*Detailed Parameters:*\n";
+    foreach ($fullResult->gateResults as $gateName => $result) {
+        $cleanName = ucwords(str_replace(['_', 'gate'], [' ', ''], $gateName));
+        $statusIcon = $result->passed ? "✅" : "❌";
+        $detailsText .= "*{$cleanName}* {$statusIcon}\n";
+
+        foreach ($result->metrics as $key => $val) {
+            $label = ucwords(str_replace('_', ' ', $key));
+
+            // Format Values
+            $formattedVal = $val;
+            if (is_float($val)) {
+                // Heuristic for percentages
+                if (
+                    str_contains(strtolower($key), 'roic') ||
+                    str_contains(strtolower($key), 'margin') ||
+                    str_contains(strtolower($key), 'growth') ||
+                    str_contains(strtolower($key), 'yield') ||
+                    str_contains(strtolower($key), 'wacc') ||
+                    str_contains(strtolower($key), 'spread') ||
+                    str_contains(strtolower($key), 'cagr')
+                ) {
+                    $formattedVal = number_format($val * 100, 2) . '%';
+                } else {
+                    $formattedVal = number_format($val, 2);
+                }
+            } elseif (is_bool($val)) {
+                $formattedVal = $val ? 'Yes' : 'No';
+            }
+
+            $detailsText .= "• {$label}: {$formattedVal}\n";
+        }
+        $detailsText .= "\n";
+    }
+
+    $blocks[] = [
+        'type' => 'section',
+        'text' => ['type' => 'mrkdwn', 'text' => $detailsText]
+    ];
+
     $blocks[] = [
         'type' => 'divider'
     ];
