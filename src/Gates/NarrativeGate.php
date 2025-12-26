@@ -49,8 +49,8 @@ class NarrativeGate implements GateInterface
         // Let's return a "Narrative Score" based on available data.
 
         $metrics = [
-            'analyst_count' => $estimates[0]['numberAnalystsEstimatedIeps'] ?? 0,
-            'avg_eps_estimate' => $estimates[0]['estimatedEpsAvg'] ?? 0,
+            'analyst_count' => $estimates[0]['numAnalystsEps'] ?? 0,
+            'avg_eps_estimate' => $estimates[0]['epsAvg'] ?? 0,
             'revision_trend' => 0 // Placeholder
         ];
 
