@@ -105,8 +105,11 @@ class SlackService
             $action = $parts[0] ?? 'help';
             $arg = $parts[1] ?? null;
 
+            $channelId = $payload['channel_id'] ?? null;
+            $userId = $payload['user_id'] ?? null;
+
             return match ($action) {
-                'analyze' => $this->cmdAnalyze($arg),
+                'analyze' => $this->cmdAnalyze($arg, $channelId, $userId),
                 'portfolio' => $this->cmdPortfolio(),
                 'alerts' => $this->cmdAlerts(),
                 default => $this->cmdHelp(),
@@ -116,16 +119,33 @@ class SlackService
         return ['text' => "Unknown command: $command"];
     }
 
-    private function cmdAnalyze(?string $ticker): array
+    private function cmdAnalyze(?string $ticker, ?string $channelId = null, ?string $userId = null): array
     {
         if (!$ticker) {
             return ['text' => "⚠️ Usage: `/sixgates analyze [TICKER]`"];
         }
 
-        // In a real async app, we'd queue a job.
-        // For sync demo, we return a message saying we started.
-        // Or if fast enough, do it? Analysis takes time.
-        // Let's return immediate response.
+        $ticker = strtoupper($ticker);
+
+        // Use provided channelId or default notification channel
+        $targetChannel = $channelId ?? $this->notificationChannel;
+
+        // Spawn Background Worker
+        $workerPath = __DIR__ . '/../../../bin/slack_worker.php';
+
+        // Sanitize inputs
+        $cleanTicker = escapeshellarg($ticker);
+        $cleanChannel = escapeshellarg($targetChannel);
+        $cleanUser = escapeshellarg($userId ?? '');
+
+        // Run in background
+        $logFile = __DIR__ . '/../../../storage/logs/slack_worker.log';
+        if (!is_dir(dirname($logFile))) {
+            mkdir(dirname($logFile), 0777, true);
+        }
+        $cmd = "php $workerPath $cleanTicker $cleanChannel $cleanUser >> $logFile 2>&1 &";
+
+        exec($cmd);
 
         return [
             'response_type' => 'in_channel',
@@ -136,7 +156,7 @@ class SlackService
                 ],
                 [
                     'type' => 'context',
-                    'elements' => [['type' => 'mrkdwn', 'text' => "Use `/sixgates portfolio` to see results later."]]
+                    'elements' => [['type' => 'mrkdwn', 'text' => "Please wait, this may take up to 60 seconds."]]
                 ]
             ]
         ];
