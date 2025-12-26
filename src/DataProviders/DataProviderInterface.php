@@ -17,4 +17,5 @@ interface DataProviderInterface
     public function getSectorPerformance(): array;
     public function getCompanyProfile(string $ticker): ?array;
     public function getESGData(string $ticker): ?array;
+    public function getEarningCallTranscript(string $ticker, ?int $year = null, ?int $quarter = null): ?array;
 }

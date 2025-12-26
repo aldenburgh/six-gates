@@ -144,17 +144,10 @@ class CacheableProviderDecorator implements DataProviderInterface
 
     public function getCompanyProfile(string $ticker): ?array
     {
-        // Need to handle null return from callback in cache logic? 
-        // My getCached logic assumes array return.
-        // If profile is NOT found, FMP returns empty or null?
-        // My FMP implementation returns `null` or `array`.
-        // If I return `?array`, my `getCached` signature `array` will fail.
-
         $item = $this->cache->getItem("fmp.profile.{$ticker}");
 
         if (!$item->isHit()) {
             $data = $this->tweed->getCompanyProfile($ticker);
-            // Cache even if null? Maybe cache "not found" state.
             $item->set($data);
             $item->expiresAfter(86400);
             $this->cache->save($item);
@@ -173,6 +166,27 @@ class CacheableProviderDecorator implements DataProviderInterface
             $item->set($data);
             $item->expiresAfter(86400 * 7); // Cache for a week, changes slowly
             $this->cache->save($item);
+            return $data;
+        }
+
+        return $item->get();
+    }
+    public function getEarningCallTranscript(string $ticker, ?int $year = null, ?int $quarter = null): ?array
+    {
+        $year = $year ?? (int) date('Y');
+        $quarter = $quarter ?? ceil(date('n') / 3);
+        $key = "fmp.transcript.{$ticker}.{$year}.{$quarter}";
+
+        $item = $this->cache->getItem($key);
+
+        if (!$item->isHit()) {
+            $data = $this->tweed->getEarningCallTranscript($ticker, $year, $quarter);
+            // Cache specific transcript forever (historical data doesn't change)
+            if ($data) {
+                $item->set($data);
+                $item->expiresAfter(31536000); // 1 year
+                $this->cache->save($item);
+            }
             return $data;
         }
 

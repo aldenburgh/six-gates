@@ -50,6 +50,13 @@ Be conservative. Many companies have no durable moat.
 A moat must be STRUCTURAL, not just current market position.
 PROMPT;
 
+        // Fetch Earning Transcript (Graceful fallback if 402/Unavailable)
+        $transcript = $this->dataProvider->getEarningCallTranscript($ticker);
+        $transcriptContent = $transcript ? substr($transcript['content'] ?? '', 0, 5000) : "Not available (Restricted/Missing)"; // Limit length for token context
+
+        $currentPrice = $profile['price'] ?? 'N/A';
+        $marketCap = $profile['marketCap'] ?? 'N/A';
+
         $userPrompt = <<<PROMPT
 Analyze this company for competitive moat:
 
@@ -62,8 +69,11 @@ Financial Indicators:
 - Gross Margin Trend: {$marginTrend}
 - ROIC (5yr avg): " . number_format($avgRoic * 100, 2) . "%
 
-Current Price: {$profile['price']}
-Market Cap: {$profile['marketCap']}
+Earning Call Context (Latest):
+\"{$transcriptContent}\"
+
+Current Price: {$currentPrice}
+Market Cap: {$marketCap}
 
 Please use your internal knowledge about the company's business model to supplement these financials.
 

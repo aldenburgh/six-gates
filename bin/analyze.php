@@ -184,8 +184,7 @@ try {
     echo "\n-----------------------------------------------\n";
     echo "Full Analysis Run:\n";
     echo "Ticker: $ticker\n";
-    echo "Price: $" . number_format($fullResult->price ?? 0, 2) . "\n";
-    echo "Market Cap: $" . number_format(($fullResult->marketCap ?? 0) / 1000000000, 2) . "B\n";
+
 
 
     $scorer = new \SixGates\Scoring\SixGatesScorer();
@@ -201,6 +200,8 @@ try {
 
     $fullResult = $scorer->score($ticker, $dataProvider);
     echo "Quality Check: " . ($fullResult->passedQuality ? "PASSED ✅" : "FAILED ❌") . "\n";
+    echo "Price: $" . number_format($fullResult->price ?? 0, 2) . "\n";
+    echo "Market Cap: $" . number_format(($fullResult->marketCap ?? 0) / 1000000000, 2) . "B\n";
 
     // Classification & Sizing
     echo "\n[Classification] Tier & Size:\n";
@@ -251,7 +252,7 @@ try {
         echo "Generating Analyst Report...\n";
 
         $reportRepo = new \SixGates\Repositories\ReportRepository($dbConnection);
-        $reportService = new \SixGates\Services\ReportGeneratorService($anthropicProvider, $reportRepo);
+        $reportService = new \SixGates\Services\ReportGeneratorService($anthropicProvider, $reportRepo, $dataProvider);
 
         $report = $reportService->generateAndSave($fullResult);
 
@@ -266,13 +267,7 @@ try {
     }
 
 } catch (\Exception $e) {
-    if ($e->getCode() === 402) {
-        echo "\n\033[31mDATA ACCESS DENIED (402)\033[0m\n";
-        echo "The FMP API returned a 'Payment Required' error.\n";
-        echo "Reason: Your current subscription plan does not support this ticker or endpoint.\n";
-        echo "Details: " . $e->getMessage() . "\n";
-        exit(1);
-    }
+
 
     echo "\n\033[31mANALYSIS FAILED\033[0m\n";
     echo "Error: " . $e->getMessage() . "\n";

@@ -76,3 +76,28 @@ foreach ($endpoints as $name => $u) {
         echo "Failed: " . $e->getMessage() . "\n";
     }
 }
+
+// 4. Test Earning Call Transcript
+echo "\n--- Earning Call Transcript Test ---\n";
+// Test specific quarter provided by user
+$url = "https://financialmodelingprep.com/stable/earning-call-transcript?symbol=AAPL&year=2020&quarter=3&apikey=$apiKey";
+echo "Testing: $url\n";
+try {
+    $res = $client->get($url);
+    $data = json_decode($res->getBody(), true);
+    echo "Count: " . count($data) . "\n";
+    if (count($data) > 0) {
+        $transcript = $data[0];
+        echo "Quarter: " . ($transcript['quarter'] ?? 'N/A') . "\n";
+        echo "Year: " . ($transcript['year'] ?? 'N/A') . "\n";
+        echo "Content Length: " . strlen($transcript['content'] ?? '') . "\n";
+        echo "Snippet: " . substr($transcript['content'] ?? '', 0, 100) . "...\n";
+    }
+} catch (\GuzzleHttp\Exception\ClientException $e) {
+    echo "Client Exception: " . $e->getMessage() . "\n";
+    if ($e->getResponse()->getStatusCode() === 403) {
+        echo "Graceful Failure: Subscription limited (403)\n";
+    }
+} catch (\Exception $e) {
+    echo "Failed: " . $e->getMessage() . "\n";
+}

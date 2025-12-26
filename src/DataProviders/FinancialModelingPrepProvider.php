@@ -23,9 +23,11 @@ class FinancialModelingPrepProvider implements DataProviderInterface
             $response = $e->getResponse();
             $statusCode = $response ? $response->getStatusCode() : 0;
 
-            // Handle 403 Forbidden or 401 Unauthorized (e.g. Free Tier Limits)
-            if ($statusCode === 403 || $statusCode === 401) {
-                error_log("FMP API Access Denied ($statusCode) for endpoint: $endpoint. Msg: " . $e->getMessage());
+            // Handle 403 Forbidden, 401 Unauthorized, 402 Payment Required, or 404 Not Found
+            if (in_array($statusCode, [401, 402, 403, 404])) {
+                // Log warning for restricted access but debug for 404? 
+                // For now, consistent silent fail or log is better than crash.
+                // error_log("FMP API Status $statusCode for $endpoint");
                 return []; // Fail gracefully
             }
 
@@ -84,7 +86,7 @@ class FinancialModelingPrepProvider implements DataProviderInterface
 
     public function getAnalystEstimates(string $ticker): array
     {
-        return $this->fetch("analyst-estimates/{$ticker}", ['period' => 'annual', 'limit' => 10]);
+        return $this->fetch("analyst-estimates", ['symbol' => $ticker, 'period' => 'annual', 'limit' => 10]);
     }
 
     public function getHistoricalPrice(string $ticker): array
@@ -118,7 +120,7 @@ class FinancialModelingPrepProvider implements DataProviderInterface
 
     public function getCompanyProfile(string $ticker): ?array
     {
-        $data = $this->fetch("profile/{$ticker}");
+        $data = $this->fetch("profile", ['symbol' => $ticker]);
         return $data[0] ?? null;
     }
 
@@ -129,6 +131,56 @@ class FinancialModelingPrepProvider implements DataProviderInterface
             $data = $this->fetch("https://financialmodelingprep.com/stable/esg-ratings", ['symbol' => $ticker]);
             return $data[0] ?? null;
         } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    public function getEarningCallTranscript(string $ticker, ?int $year = null, ?int $quarter = null): ?array
+    {
+        try {
+            // Case 1: Specific Year/Quarter requested
+            if ($year && $quarter) {
+                $data = $this->fetch("earning-call-transcript", [
+                    'symbol' => $ticker,
+                    'year' => $year,
+                    'quarter' => $quarter
+                ]);
+                return $data[0] ?? null; // FMP returns array of objects, we want the first/only one
+            }
+
+            // Case 2: Auto-detect (Fallback Logic)
+            // Start from current quarter and look back up to 4 quarters
+            $currentYear = (int) date('Y');
+            $currentQuarter = (int) ceil(date('n') / 3);
+
+            for ($i = 0; $i < 4; $i++) {
+                // Calculate target quarter
+                $targetYear = $currentYear;
+                $targetQuarter = $currentQuarter - $i;
+
+                // Handle year rollback
+                while ($targetQuarter < 1) {
+                    $targetQuarter += 4;
+                    $targetYear--;
+                }
+
+                $data = $this->fetch("earning-call-transcript", [
+                    'symbol' => $ticker,
+                    'year' => $targetYear,
+                    'quarter' => $targetQuarter
+                ]);
+
+                // Check if we got a valid transcript
+                // Accessing index 0 because FMP returns [ { ... } ]
+                if (!empty($data) && isset($data[0]['content'])) {
+                    return $data[0];
+                }
+            }
+
+            return null; // No transcript found in last year
+
+        } catch (\Exception $e) {
+            // Graceful failure as requested
             return null;
         }
     }

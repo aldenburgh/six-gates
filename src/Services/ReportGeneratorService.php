@@ -8,11 +8,14 @@ use SixGates\Scoring\AnalysisResult;
 use SixGates\Entities\AnalysisReport;
 use Exception;
 
+use SixGates\DataProviders\DataProviderInterface;
+
 class ReportGeneratorService
 {
     public function __construct(
         private AnthropicProvider $llmProvider,
-        private ReportRepository $reportRepository
+        private ReportRepository $reportRepository,
+        private DataProviderInterface $dataProvider
     ) {
     }
 
@@ -86,6 +89,18 @@ class ReportGeneratorService
             $prompt .= "\n## Market Context\n";
             $prompt .= "Phase: " . ($result->context['phase'] ?? 'Unknown') . "\n";
             $prompt .= "Risk Score: " . ($result->context['risk'] ?? 'N/A') . "\n";
+        }
+
+        // Earning Transcript Context
+        $transcript = $this->dataProvider->getEarningCallTranscript($result->ticker);
+        if ($transcript) {
+            $snippet = substr($transcript['content'] ?? '', 0, 4000); // Reasonable context window
+            $prompt .= "\n## Latest Earning Call Context\n";
+            $prompt .= "Date: " . ($transcript['date'] ?? 'Unknown') . "\n";
+            $prompt .= "Snippet: \"...{$snippet}...\"\n";
+        } else {
+            $prompt .= "\n## Latest Earning Call Context\n";
+            $prompt .= "Transcript not available (Restricted/Missing).\n";
         }
 
         // Previous Report for Comparison
