@@ -87,7 +87,7 @@ class FinancialModelingPrepProvider implements DataProviderInterface
         try {
             return $this->fetch("v3/stock_news", ['tickers' => $ticker, 'limit' => $limit]);
         } catch (\RuntimeException $e) {
-            echo "NEWS FETCH ERROR: " . $e->getMessage() . "\n";
+            error_log("NEWS FETCH ERROR: " . $e->getMessage());
             return [];
         }
     }
