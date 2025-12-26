@@ -24,12 +24,14 @@ class SlackController
         // Commands are POST form fields. Events are JSON.
         // Let's assume Slash Command for now (application/x-www-form-urlencoded).
 
-        $payload = [];
-        parse_str($body, $payload);
+        // Detect Content-Type
+        $contentType = $headers['content-type'] ?? '';
 
-        // If it's JSON (Event API), payload might be empty from parse_str
-        if (empty($payload)) {
+        $payload = [];
+        if (str_contains($contentType, 'application/json') || str_starts_with(trim($body), '{')) {
             $payload = json_decode($body, true) ?? [];
+        } else {
+            parse_str($body, $payload);
         }
 
         // 3. Dispatch
