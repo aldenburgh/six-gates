@@ -165,14 +165,22 @@ try {
     $reportText = $report->reportContent;
     // Just send the whole thing in a code block or section?
     // Section is better but limited length.
-    if (strlen($reportText) > 2800) {
-        $reportText = substr($reportText, 0, 2800) . "... (truncated)";
-    }
+    // Chunk report text if too long (Slack limit ~3000 chars per block)
+    $reportText = $report->reportContent;
+    $maxLen = 2800;
 
-    $blocks[] = [
-        'type' => 'section',
-        'text' => ['type' => 'mrkdwn', 'text' => $reportText]
-    ];
+    // Split into chunks, preserving newlines where possible (simple chunking for now)
+    $chunks = str_split($reportText, $maxLen);
+
+    foreach ($chunks as $i => $chunk) {
+        // Add header for continuation if not first chunk
+        $text = ($i > 0 ? "...(continued)\n" : "") . $chunk;
+
+        $blocks[] = [
+            'type' => 'section',
+            'text' => ['type' => 'mrkdwn', 'text' => $text]
+        ];
+    }
 
     if ($userId) {
         $blocks[] = [
